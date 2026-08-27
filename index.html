@@ -11,19 +11,24 @@
 
         <h1>Mi Pokédex</h1>
 
-        <form action="" >
-            <label for="search">Buscar...</label>
-            <input id="search" type="search" name="name" />
-        </form>
+        <div class="buscador" role="search">
+            <label class="buscador__label" for="search">Buscar Pokémon</label>
+            <input
+                class="buscador__input"
+                id="search"
+                type="search"
+                placeholder="Escribe un nombre…"
+                autocomplete="off">
+        </div>
 
         <div id="pokemon">
 
         </div>
+
         <dialog id="pokemon__data" data-id="">
 
         </dialog>
 
-        
     </section>
 
     <script src="js/script.js"></script>

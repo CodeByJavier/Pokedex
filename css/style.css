@@ -545,3 +545,82 @@ body:has(#pokemon__data[open]) {
   max-width: 40ch;
   margin-inline: auto;
 }
+
+/* * ---------------------------------------------------------------------
+  * Buscador
+  * ------------------------------------------------------------------- */
+
+.buscador {
+  max-width: 28rem;
+  margin: 0 auto clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.buscador__label {
+  display: block;
+  margin-bottom: 0.45rem;
+
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--clr-body);
+  opacity: 0.75;
+}
+
+.buscador__input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.6rem;
+
+  font: inherit;
+  font-size: 1rem;
+  color: var(--clr-ink);
+
+  background-color: var(--clr-surface);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b8b8cc' stroke-width='2' stroke-linecap='round'><circle cx='11' cy='11' r='7'/><line x1='16.5' y1='16.5' x2='21' y2='21'/></svg>");
+  background-repeat: no-repeat;
+  background-position: 0.85rem center;
+  background-size: 1.1rem;
+
+  border: 1px solid var(--clr-border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
+
+  transition: border-color var(--transition-fast),
+              box-shadow var(--transition-fast);
+}
+
+.buscador__input::placeholder {
+  color: var(--clr-body);
+  opacity: 0.55;
+}
+
+.buscador__input:hover {
+  border-color: color-mix(in srgb, var(--clr-accent) 45%, var(--clr-border));
+}
+
+.buscador__input:focus {
+  outline: none;                       /* se sustituye por el anillo de abajo */
+  border-color: var(--clr-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--clr-accent) 25%, transparent);
+}
+
+/* Quita la "x" gris que Chrome añade a los input type=search */
+.buscador__input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 0.9rem;
+  height: 0.9rem;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff4d5e' stroke-width='3' stroke-linecap='round'><line x1='5' y1='5' x2='19' y2='19'/><line x1='19' y1='5' x2='5' y2='19'/></svg>");
+  background-size: contain;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+/* Mensajes en el sitio de la rejilla (cargando, error, sin resultados) */
+.mensaje-vacio {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: clamp(2rem, 8vw, 4rem) 1rem;
+  color: var(--clr-body);
+  font-size: 1rem;
+}
