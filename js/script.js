@@ -1,5 +1,5 @@
 /* =====================================================================
- * Pokédex — lista, buscador y ficha de detalle
+ * Pokédex — lista, buscador, carga por tandas y ficha de detalle
  * ===================================================================== */
 
 /* --- Referencias a elementos del HTML ---
@@ -7,10 +7,24 @@
 const tarjetaPokemon = document.getElementById("pokemon");
 const tarjetaData = document.getElementById("pokemon__data");
 const search = document.getElementById("search");
+const buttonLoader = document.getElementById("loader__button");
 
-/* La "despensa": aquí se guardan los datos traídos de la API.
-   Es `let` porque su valor cambia (empieza vacía y luego se llena). */
-let allPokemons = [];
+
+/* =====================================================================
+ * ESTADO
+ * ---------------------------------------------------------------------
+ * Todo lo que la aplicación "recuerda" entre una acción y otra.
+ * Regla: un dato, una variable. Nada que se pueda calcular a partir
+ * de estas se guarda aparte — se calcula en el momento.
+ * ===================================================================== */
+
+let allPokemons = [];        // los Pokémon ya descargados (la "despensa")
+let offset = 0;              // por dónde va la paginación (el marcapáginas)
+let hayMas = true;           // ¿quedan más tandas en la API?
+let cargando = false;        // ¿hay una petición en curso ahora mismo?
+let terminoBusqueda = "";    // lo que el usuario tiene escrito en el buscador
+
+const POR_TANDA = 20;
 
 const URL_ARTWORK =
     "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork";
@@ -48,34 +62,78 @@ function createTarjetaHTML(pokemon) {
     `;
 }
 
-/* Pinta en la rejilla la lista que se le pase.
-   No decide QUÉ pintar: eso lo decide quien la llama. */
-function drawPokemons(lista) {
-    /* Caso "sin resultados": una rejilla vacía parecería un error. */
-    if (lista.length === 0) {
-        tarjetaPokemon.innerHTML = `
-            <p class="mensaje-vacio">
-                Ningún Pokémon coincide con esa búsqueda.
-            </p>
-        `;
-        return;
-    }
-
-    tarjetaPokemon.innerHTML = lista.map(createTarjetaHTML).join("");
+/* Muestra un mensaje ocupando toda la rejilla (cargando, error, vacío). */
+function mostrarMensaje(texto) {
+    tarjetaPokemon.innerHTML = `<p class="mensaje-vacio">${texto}</p>`;
 }
 
 
 /* =====================================================================
- * Carga inicial: trae los datos y los guarda
+ * RENDER: dibuja la pantalla a partir del estado
+ * ---------------------------------------------------------------------
+ * Una sola función decide qué se ve. No recibe parámetros: lee el
+ * estado de arriba. Así es imposible que la rejilla y el botón se
+ * contradigan, porque siempre se calculan juntos y de la misma fuente.
+ * ===================================================================== */
+
+function render() {
+    /* Lo que se muestra NO se guarda en una variable aparte:
+       se deriva del estado cada vez. Un dato, una fuente. */
+    const visibles = allPokemons.filter((pokemon) => {
+        return pokemon.name.toLowerCase().includes(terminoBusqueda);
+    });
+
+    /* --- La rejilla --- */
+    if (visibles.length === 0) {
+        /* El mensaje cambia según por qué está vacío: no es lo mismo
+           "no hay nada cargado" que "tu búsqueda no encuentra nada". */
+        mostrarMensaje(
+            terminoBusqueda
+                ? `Ningún Pokémon cargado coincide con “${terminoBusqueda}”.`
+                : "No hay Pokémon que mostrar."
+        );
+    } else {
+        tarjetaPokemon.innerHTML = visibles.map(createTarjetaHTML).join("");
+    }
+
+    /* --- El botón de cargar más --- */
+    buttonLoader.disabled = cargando || !hayMas;
+
+    if (cargando) {
+        buttonLoader.textContent = "Cargando…";
+    } else if (!hayMas) {
+        buttonLoader.textContent = "No hay más Pokémon";
+    } else {
+        buttonLoader.textContent = `Cargar más Pokemons`;
+    }
+}
+
+
+/* =====================================================================
+ * Traer una tanda de Pokémon
  * ===================================================================== */
 
 async function obtenerPokemons() {
-    tarjetaPokemon.innerHTML = `<p class="mensaje-vacio">Cargando…</p>`;
+    /* Guarda: si ya hay una petición en marcha, o no quedan más,
+       este clic se ignora. Evita duplicados por clics repetidos. */
+    if (cargando || !hayMas) return;
+
+    cargando = true;
+
+    /* Solo en la primera carga la rejilla está vacía y conviene
+       ocuparla con el mensaje. En las siguientes ya hay tarjetas
+       visibles y borrarlas sería peor: basta con avisar en el botón. */
+    if (allPokemons.length === 0) {
+        mostrarMensaje("Cargando…");
+    }
+    render();
 
     try {
-        /* 1) Lista ligera: solo nombre y URL de cada Pokémon. */
-        const pokemonsResponse = await fetch("https://pokeapi.co/api/v2/pokemon?limit=20");
+        /* 1) Lista ligera de la tanda: solo nombre y URL de cada uno. */
+        const url = `https://pokeapi.co/api/v2/pokemon?limit=${POR_TANDA}&offset=${offset}`;
+        const pokemonsResponse = await fetch(url);
 
+        /* fetch no falla con un 404 o un 500: hay que comprobarlo a mano. */
         if (!pokemonsResponse.ok) {
             throw new Error(`El servidor respondió con código ${pokemonsResponse.status}`);
         }
@@ -83,27 +141,39 @@ async function obtenerPokemons() {
         const pokemonsResponseData = await pokemonsResponse.json();
         const pokemonsList = pokemonsResponseData.results;
 
+        /* La API dice en `next` si hay más páginas: null significa
+           que esta era la última. Leemos el dato en vez de adivinarlo. */
+        hayMas = pokemonsResponseData.next !== null;
+
         /* 2) Una petición de detalle por Pokémon, todas lanzadas a la vez.
               Sin `await` aquí: solo repartimos "tickets" (promesas). */
         const peticiones = pokemonsList.map((pokemonData) => fetch(pokemonData.url));
 
-        /* 3) Primera ronda: esperar a que lleguen las 20 respuestas. */
+        /* 3) Primera ronda: esperar a que lleguen las respuestas. */
         const respuestas = await Promise.all(peticiones);
 
         /* 4) Segunda ronda: convertir cada respuesta en datos usables. */
         const detalles = await Promise.all(respuestas.map((r) => r.json()));
 
-        /* 5) Guardar en la despensa y pintar. */
-        allPokemons = detalles;
-        drawPokemons(allPokemons);
+        /* 5) Acumular: lo que ya tenía, y detrás lo que acaba de llegar.
+              El orden del spread es el orden final. */
+        allPokemons = [...allPokemons, ...detalles];
+        offset = offset + POR_TANDA;
 
     } catch (error) {
-        tarjetaPokemon.innerHTML = `
-            <p class="mensaje-vacio">
-                No hemos podido cargar los datos. Comprueba tu conexión e inténtalo de nuevo.
-            </p>
-        `;
+        /* Si ya había tarjetas en pantalla no las borramos: sería
+           castigar al usuario por un fallo al pedir MÁS. */
+        if (allPokemons.length === 0) {
+            mostrarMensaje("No hemos podido cargar los datos. Comprueba tu conexión e inténtalo de nuevo.");
+        }
         console.error(error);
+
+    } finally {
+        /* `finally` se ejecuta pase lo que pase. Es el sitio para
+           soltar la bandera: si estuviera solo en el `try`, un fallo
+           dejaría el botón bloqueado para siempre. */
+        cargando = false;
+        render();
     }
 }
 
@@ -111,18 +181,24 @@ obtenerPokemons();
 
 
 /* =====================================================================
- * Buscador: filtra la despensa y repinta
+ * Buscador
  * ===================================================================== */
 
 search.addEventListener("input", (evento) => {
-    const textSearch = evento.target.value.toLowerCase();
+    /* El listener solo actualiza el estado; de pintar se encarga render(). */
+    terminoBusqueda = evento.target.value.toLowerCase().trim();
+    render();
+});
 
-    /* .filter() se queda con los que devuelven true. */
-    const pokemonSearch = allPokemons.filter((pokemon) => {
-        return pokemon.name.toLowerCase().includes(textSearch);
-    });
 
-    drawPokemons(pokemonSearch);
+/* =====================================================================
+ * Botón "Cargar más"
+ * ===================================================================== */
+
+/* Listener directo: este botón está en el HTML desde el principio y no
+   se destruye nunca, así que no hace falta delegación. */
+buttonLoader.addEventListener("click", () => {
+    obtenerPokemons();
 });
 
 
@@ -130,8 +206,8 @@ search.addEventListener("input", (evento) => {
  * Clic en una tarjeta: abre la ficha de detalle
  * ===================================================================== */
 
-/* Un solo listener en la rejilla (delegación): funciona también con las
-   tarjetas que se crean después, al buscar. */
+/* Un solo listener en la rejilla (delegación): las tarjetas se crean y
+   se destruyen con cada render, así que no pueden llevarlo ellas. */
 tarjetaPokemon.addEventListener("click", async (evento) => {
 
     /* --- Guardas: esto no puede fallar, va fuera del try --- */
@@ -150,7 +226,6 @@ tarjetaPokemon.addEventListener("click", async (evento) => {
     try {
         const dataTarjetaResponse = await fetch(`https://pokeapi.co/api/v2/pokemon/${number}`);
 
-        /* fetch no falla con un 404: hay que comprobarlo a mano. */
         if (!dataTarjetaResponse.ok) {
             throw new Error(`El servidor respondió con código ${dataTarjetaResponse.status}`);
         }

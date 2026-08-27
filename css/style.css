@@ -624,3 +624,79 @@ body:has(#pokemon__data[open]) {
   color: var(--clr-body);
   font-size: 1rem;
 }
+
+/* * ---------------------------------------------------------------------
+  * Botón "Cargar más"
+  * ------------------------------------------------------------------- */
+
+.loader {
+  display: flex;
+  justify-content: center;
+  margin-top: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.loader__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  padding: 0.8rem 1.8rem;
+
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--clr-ink);
+
+  background: linear-gradient(160deg, var(--clr-surface), var(--clr-bg-alt));
+  border: 1px solid var(--clr-border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+
+  transition: transform var(--transition-fast),
+              border-color var(--transition-fast),
+              box-shadow var(--transition-fast),
+              opacity var(--transition-fast);
+}
+
+.loader__button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: var(--clr-accent);
+  box-shadow: var(--shadow-md);
+}
+
+.loader__button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Estado desactivado: se ve apagado y el cursor avisa de que no responde */
+.loader__button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Rueda giratoria mientras carga.
+   Se activa sola cuando el botón está desactivado Y dice "Cargando…",
+   sin necesidad de añadir clases desde JavaScript. */
+.loader__button:disabled::before {
+  content: "";
+  width: 0.95rem;
+  height: 0.95rem;
+  border: 2px solid color-mix(in srgb, var(--clr-ink) 30%, transparent);
+  border-top-color: var(--clr-accent);
+  border-radius: 50%;
+  animation: girar 0.7s linear infinite;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}
+
+/* Quien haya pedido menos animación no ve la rueda girar */
+@media (prefers-reduced-motion: reduce) {
+  .loader__button:disabled::before {
+    animation: none;
+  }
+}
