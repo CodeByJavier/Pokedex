@@ -223,9 +223,11 @@ h4 {
   * Type Style
   * ------------------------------------------------------------------- */
 
-.pokemon--type [data-type] {
+[data-type] {
   --t: #8a8f9e;                       /* color por defecto, se sobrescribe abajo */
+}
 
+.pokemon--type [data-type] {
   display: inline-block;
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
@@ -242,24 +244,149 @@ h4 {
   border: 1px solid color-mix(in srgb, var(--t) 40%, transparent);
 }
 
-.pokemon--type [data-type="normal"]   { --t: #b6b696; }
-.pokemon--type [data-type="fire"]     { --t: #ff9c54; }
-.pokemon--type [data-type="water"]    { --t: #6bb0f5; }
-.pokemon--type [data-type="electric"] { --t: #f7d02c; }
-.pokemon--type [data-type="grass"]    { --t: #8bd15f; }
-.pokemon--type [data-type="ice"]      { --t: #96d9d6; }
-.pokemon--type [data-type="fighting"] { --t: #f0655e; }
-.pokemon--type [data-type="poison"]   { --t: #cf6ecd; }
-.pokemon--type [data-type="ground"]   { --t: #e2bf65; }
-.pokemon--type [data-type="flying"]   { --t: #a98ff3; }
-.pokemon--type [data-type="psychic"]  { --t: #fb7f9f; }
-.pokemon--type [data-type="bug"]      { --t: #c3d43b; }
-.pokemon--type [data-type="rock"]     { --t: #ccbb66; }
-.pokemon--type [data-type="ghost"]    { --t: #9b83c9; }
-.pokemon--type [data-type="dragon"]   { --t: #9a72fd; }
-.pokemon--type [data-type="dark"]     { --t: #a58e78; }
-.pokemon--type [data-type="steel"]    { --t: #b7b7ce; }
-.pokemon--type [data-type="fairy"]    { --t: #f0a1c4; }
+[data-type="normal"]   { --t: #b6b696; }
+[data-type="fire"]     { --t: #ff9c54; }
+[data-type="water"]    { --t: #6bb0f5; }
+[data-type="electric"] { --t: #f7d02c; }
+[data-type="grass"]    { --t: #8bd15f; }
+[data-type="ice"]      { --t: #96d9d6; }
+[data-type="fighting"] { --t: #f0655e; }
+[data-type="poison"]   { --t: #cf6ecd; }
+[data-type="ground"]   { --t: #e2bf65; }
+[data-type="flying"]   { --t: #a98ff3; }
+[data-type="psychic"]  { --t: #fb7f9f; }
+[data-type="bug"]      { --t: #c3d43b; }
+[data-type="rock"]     { --t: #ccbb66; }
+[data-type="ghost"]    { --t: #9b83c9; }
+[data-type="dragon"]   { --t: #9a72fd; }
+[data-type="dark"]     { --t: #a58e78; }
+[data-type="steel"]    { --t: #b7b7ce; }
+[data-type="fairy"]    { --t: #f0a1c4; }
+/* * ---------------------------------------------------------------------
+  * Borde degradado según los tipos del Pokémon
+  * ------------------------------------------------------------------- */
+
+[data-type-1="normal"]   { --t1: #b6b696; }
+[data-type-1="fire"]     { --t1: #ff9c54; }
+[data-type-1="water"]    { --t1: #6bb0f5; }
+[data-type-1="electric"] { --t1: #f7d02c; }
+[data-type-1="grass"]    { --t1: #8bd15f; }
+[data-type-1="ice"]      { --t1: #96d9d6; }
+[data-type-1="fighting"] { --t1: #f0655e; }
+[data-type-1="poison"]   { --t1: #cf6ecd; }
+[data-type-1="ground"]   { --t1: #e2bf65; }
+[data-type-1="flying"]   { --t1: #a98ff3; }
+[data-type-1="psychic"]  { --t1: #fb7f9f; }
+[data-type-1="bug"]      { --t1: #c3d43b; }
+[data-type-1="rock"]     { --t1: #ccbb66; }
+[data-type-1="ghost"]    { --t1: #9b83c9; }
+[data-type-1="dragon"]   { --t1: #9a72fd; }
+[data-type-1="dark"]     { --t1: #a58e78; }
+[data-type-1="steel"]    { --t1: #b7b7ce; }
+[data-type-1="fairy"]    { --t1: #f0a1c4; }
+
+[data-type-2="normal"]   { --t2: #b6b696; }
+[data-type-2="fire"]     { --t2: #ff9c54; }
+[data-type-2="water"]    { --t2: #6bb0f5; }
+[data-type-2="electric"] { --t2: #f7d02c; }
+[data-type-2="grass"]    { --t2: #8bd15f; }
+[data-type-2="ice"]      { --t2: #96d9d6; }
+[data-type-2="fighting"] { --t2: #f0655e; }
+[data-type-2="poison"]   { --t2: #cf6ecd; }
+[data-type-2="ground"]   { --t2: #e2bf65; }
+[data-type-2="flying"]   { --t2: #a98ff3; }
+[data-type-2="psychic"]  { --t2: #fb7f9f; }
+[data-type-2="bug"]      { --t2: #c3d43b; }
+[data-type-2="rock"]     { --t2: #ccbb66; }
+[data-type-2="ghost"]    { --t2: #9b83c9; }
+[data-type-2="dragon"]   { --t2: #9a72fd; }
+[data-type-2="dark"]     { --t2: #a58e78; }
+[data-type-2="steel"]    { --t2: #b7b7ce; }
+[data-type-2="fairy"]    { --t2: #f0a1c4; }
+
+.pokemon--container[data-type-1],
+.modal__grid[data-type-1] {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--clr-surface), var(--clr-surface)) padding-box,
+    linear-gradient(135deg, var(--t1), var(--t2)) border-box;
+}
+
+.pokemon--container[data-type-1]:hover,
+.modal__grid[data-type-1],
+.modal__grid[data-type-1]:focus-visible,
+.pokemon--container[data-type-1]:focus-visible {
+  box-shadow: var(--shadow-md), 0 0 0 3px color-mix(in srgb, var(--t1) 25%, transparent);
+}
+
+/* * ---------------------------------------------------------------------
+  * Filter Style
+  * ------------------------------------------------------------------- */
+
+.filter {
+  margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.filter__title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--clr-body);
+  opacity: 0.75;
+  text-align: center;
+  margin-bottom: 0.7rem;
+}
+
+.filter__by__type {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.filter__by__type button {
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  color: var(--t);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--t) 35%, transparent);
+
+  transition: background-color var(--transition-fast),
+              border-color var(--transition-fast),
+              color var(--transition-fast),
+              opacity var(--transition-fast),
+              transform var(--transition-fast);
+}
+
+.filter__by__type button:hover:not(:disabled) {
+  color: var(--t);
+  border-color: var(--t);
+  background: color-mix(in srgb, var(--t) 14%, transparent);
+  transform: translateY(-1px);
+}
+
+/* El estado activo se lee del propio HTML (aria-pressed), que es donde
+   ya vive: no hacen falta clases que añadir y quitar desde JavaScript. */
+.filter__by__type button[aria-pressed="true"] {
+  color: var(--clr-bg);
+  background: var(--t);
+  border-color: var(--t);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--t) 22%, transparent);
+}
+
+.filter__by__type button:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
+}
 
 
 /* * ---------------------------------------------------------------------
@@ -282,6 +409,17 @@ h4 {
   box-shadow: var(--shadow-lg);
   
   overflow: hidden;
+}
+
+/* Borde degradado del modal, con los tipos del Pokemon abierto.
+   Mismo truco que en las tarjetas: dos fondos apilados, uno recortado
+   al padding-box y el degradado hasta el border-box, con el borde
+   transparente para que asome por el anillo. */
+#pokemon__data[data-type-1] {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--clr-bg), var(--clr-bg)) padding-box,
+    linear-gradient(135deg, var(--t1), var(--t2)) border-box;
 }
 
 #pokemon__data::backdrop {
@@ -463,12 +601,21 @@ body:has(#pokemon__data[open]) {
   gap: 0.35rem 1rem;
 }
 
+#pokemon__data .stat__total{
+  grid-column:span 2;
+}
+
+
 @media (min-width: 640px) {
   #pokemon__data .modal__stats {
     grid-template-columns: 1fr;
     gap: 0.55rem;
     margin-bottom: 1.75rem;
   }
+  #pokemon__data .stat__total{
+  grid-column: 1;
+}
+
 }
 
 #pokemon__data .stat {
@@ -496,9 +643,18 @@ body:has(#pokemon__data[open]) {
   color: var(--clr-ink);
 }
 
+#pokemon__data .stat__total{
+  font-size: 1.1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--clr-ink);
+}
+
 @media (min-width: 640px) {
   #pokemon__data .stat__nombre { font-size: 0.85rem; }
   #pokemon__data .stat__valor  { font-size: 1rem; }
+  #pokemon__data .stat__total { font-size: 1.2rem; }
 }
 
 /* Medidas */

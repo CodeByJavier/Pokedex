@@ -8,6 +8,7 @@ const tarjetaPokemon = document.getElementById("pokemon");
 const tarjetaData = document.getElementById("pokemon__data");
 const search = document.getElementById("search");
 const buttonLoader = document.getElementById("loader__button");
+const buttonFilterByTypes = document.getElementById("filter__by__types");
 
 
 /* =====================================================================
@@ -19,10 +20,12 @@ const buttonLoader = document.getElementById("loader__button");
  * ===================================================================== */
 
 let allPokemons = [];        // los Pokémon ya descargados (la "despensa")
+let allPokemonsType = []
 let offset = 0;              // por dónde va la paginación (el marcapáginas)
 let hayMas = true;           // ¿quedan más tandas en la API?
 let cargando = false;        // ¿hay una petición en curso ahora mismo?
 let terminoBusqueda = "";    // lo que el usuario tiene escrito en el buscador
+let filterType = []
 
 const POR_TANDA = 20;
 
@@ -49,8 +52,14 @@ function createElementalTypeHTML(types) {
 function createTarjetaHTML(pokemon) {
     const img = `${URL_ARTWORK}/${pokemon.id}.png`;
 
+    /* El segundo tipo puede no existir: si no lo hay, repetimos el
+       primero para que el degradado quede en color plano. */
+    const type1 = pokemon.types[0].type.name;
+    const type2 = pokemon.types[1] ? pokemon.types[1].type.name : type1;
+
     return `
-        <button class="pokemon--container" data-id="${pokemon.id}">
+        <button class="pokemon--container" data-id="${pokemon.id}"
+                data-type-1="${type1}" data-type-2="${type2}">
             <img src="${img}" alt="Imagen de ${pokemon.name}" loading="lazy">
 
             <span class="pokemon--detalles">
@@ -80,11 +89,36 @@ function render() {
     /* Lo que se muestra NO se guarda en una variable aparte:
        se deriva del estado cada vez. Un dato, una fuente. */
     const visibles = allPokemons.filter((pokemon) => {
-        return pokemon.name.toLowerCase().includes(terminoBusqueda);
+
+        // 1. Los tipos de ESTE Pokémon, como lista de textos: ["grass", "poison"]
+        const pokemonTypes = pokemon.types.map((tipo) => tipo.type.name);
+
+        // 2. ¿Pasa el filtro de texto?
+        const pokemonName = pokemon.name.toLowerCase().includes(terminoBusqueda);
+
+        // 3. ¿Pasa el filtro de tipos?
+        //    Si no hay ninguno seleccionado, pasa todo el mundo.
+        //    Si hay alguno, basta con que el Pokémon tenga uno de ellos.
+        const pokemonType =
+            filterType.length === 0 ||
+            filterType.every((tipoFiltro) => pokemonTypes.includes(tipoFiltro));
+
+        // 4. Tiene que pasar los dos porteros
+        return pokemonName && pokemonType;
+    });
+
+
+    const typesButtons = filter__by__types.querySelectorAll("[data-type]");
+
+    typesButtons.forEach((button) => {
+        const active = filterType.includes(button.dataset.type);
+
+        button.setAttribute("aria-pressed", active);
+        button.disabled = !active && filterType.length >= 2;
     });
 
     /* --- La rejilla --- */
-    if (visibles.length === 0) {
+    if (visibles.length === 0 ) {
         /* El mensaje cambia según por qué está vacío: no es lo mismo
            "no hay nada cargado" que "tu búsqueda no encuentra nada". */
         mostrarMensaje(
@@ -92,6 +126,9 @@ function render() {
                 ? `Ningún Pokémon cargado coincide con “${terminoBusqueda}”.`
                 : "No hay Pokémon que mostrar."
         );
+        
+    }else if(filterType.length > 0){
+        tarjetaPokemon.innerHTML = visibles.map(createTarjetaHTML).join("");
     } else {
         tarjetaPokemon.innerHTML = visibles.map(createTarjetaHTML).join("");
     }
@@ -216,6 +253,11 @@ tarjetaPokemon.addEventListener("click", async (evento) => {
     const number = tarjeta.dataset.id;
 
     /* --- Estado de carga: el modal se abre YA, antes de pedir nada --- */
+    /* Quitamos los tipos del Pokemon anterior: mientras carga no
+       sabemos aun de que tipo es el nuevo. */
+    tarjetaData.removeAttribute("data-type-1");
+    tarjetaData.removeAttribute("data-type-2");
+
     tarjetaData.innerHTML = `
         <button class="modal__cerrar" type="button">Cerrar</button>
         <p class="modal__mensaje">Cargando…</p>
@@ -232,8 +274,10 @@ tarjetaPokemon.addEventListener("click", async (evento) => {
 
         const dataTarjeta = await dataTarjetaResponse.json();
         const img = `${URL_ARTWORK}/${dataTarjeta.id}.png`;
+        let statTotal = 0
 
         const pokemonStats = dataTarjeta.stats.map((pokemonInfo) => {
+            statTotal = pokemonInfo.base_stat + statTotal;
             return `
                 <li class="stat">
                     <span class="stat__nombre">${pokemonInfo.stat.name}:</span>
@@ -241,6 +285,16 @@ tarjetaPokemon.addEventListener("click", async (evento) => {
                 </li>
             `;
         });
+
+        /* El degradado del borde se dibuja desde CSS leyendo estos
+           atributos, igual que en las tarjetas. */
+        tarjetaData.setAttribute("data-type-1", dataTarjeta.types[0].type.name);
+        tarjetaData.setAttribute(
+            "data-type-2",
+            dataTarjeta.types[1]
+                ? dataTarjeta.types[1].type.name
+                : dataTarjeta.types[0].type.name
+        );
 
         tarjetaData.innerHTML = `
             <button class="modal__cerrar" type="button">Cerrar</button>
@@ -263,6 +317,7 @@ tarjetaPokemon.addEventListener("click", async (evento) => {
 
                     <ul class="modal__stats">
                         ${pokemonStats.join("")}
+                        <span class="stat__total">Total: ${statTotal}</span>
                     </ul>
 
                     <dl class="modal__medidas">
@@ -304,3 +359,22 @@ tarjetaData.addEventListener("click", (evento) => {
 
     tarjetaData.close();
 });
+
+filter__by__types.addEventListener("click", (evento) => {
+    const boton = evento.target.closest("[data-type]");
+    if (!boton) return;
+
+    const buttonType = boton.dataset.type;
+
+    if (filterType.includes(buttonType)) {
+        // 1. Ya estaba: lo quito.
+        filterType = filterType.filter((t) => t !== buttonType);
+
+    } else if (filterType.length < 2) {
+        // 2. No estaba y hay hueco: lo añado.
+        filterType = [...filterType, buttonType];
+    }
+    console.log(filterType)
+    render();
+});
+
