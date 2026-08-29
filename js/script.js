@@ -26,12 +26,12 @@ let hayMas = true;           // ¿quedan más tandas en la API?
 let cargando = false;        // ¿hay una petición en curso ahora mismo?
 let terminoBusqueda = "";    // lo que el usuario tiene escrito en el buscador
 let filterType = []
+const favs = "like"
 
 const POR_TANDA = 20;
 
 const URL_ARTWORK =
     "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork";
-
 
 /* =====================================================================
  * Funciones que construyen HTML
@@ -51,6 +51,7 @@ function createElementalTypeHTML(types) {
 /* Recibe UN Pokémon y devuelve el HTML de su tarjeta. */
 function createTarjetaHTML(pokemon) {
     const img = `${URL_ARTWORK}/${pokemon.id}.png`;
+    const esFavorito = likes.includes(`${pokemon.id}`);
 
     /* El segundo tipo puede no existir: si no lo hay, repetimos el
        primero para que el degradado quede en color plano. */
@@ -58,23 +59,41 @@ function createTarjetaHTML(pokemon) {
     const type2 = pokemon.types[1] ? pokemon.types[1].type.name : type1;
 
     return `
-        <button class="pokemon--container" data-id="${pokemon.id}"
-                data-type-1="${type1}" data-type-2="${type2}">
-            <img src="${img}" alt="Imagen de ${pokemon.name}" loading="lazy">
+        <article class="pokemon--container" data-type-1="${type1}" data-type-2="${type2}">
+            <button class="pokemon--button--detalles" data-id="${pokemon.id}">
+                <img src="${img}" alt="Imagen de ${pokemon.name}" loading="lazy">
 
-            <span class="pokemon--detalles">
-                <span class="pokemon--id">#${pokemon.id}</span>
-                <span class="pokemon--name">${pokemon.name}</span>
-                <span class="pokemon--type">${createElementalTypeHTML(pokemon.types)}</span>
-            </span>
-        </button>
+                <span class="pokemon--detalles">
+                    <span class="pokemon--id">#${pokemon.id}</span>
+                    <span class="pokemon--name">${pokemon.name}</span>
+                    <span class="pokemon--type">${createElementalTypeHTML(pokemon.types)}</span>
+                </span>
+            </button>
+            <button data-name="${pokemon.name}" type="button" data-id="${pokemon.id}" class="favorito" aria-label="${esFavorito ? "Quitar de" : "Añadir a"} ${pokemon.name} favoritos" aria-pressed="${esFavorito}">
+                <svg class="favorito__icono" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+            </button>
+        </article>
     `;
 }
+
+function cargarFavs() {
+    const guardadoFavs = localStorage.getItem(favs);
+    return guardadoFavs ? JSON.parse(guardadoFavs) : [];
+}
+function guardarFavs(like) {
+    localStorage.setItem(favs, JSON.stringify(like));
+}
+
+let likes = cargarFavs();
 
 /* Muestra un mensaje ocupando toda la rejilla (cargando, error, vacío). */
 function mostrarMensaje(texto) {
     tarjetaPokemon.innerHTML = `<p class="mensaje-vacio">${texto}</p>`;
 }
+
+console.log(favs)
 
 
 /* =====================================================================
@@ -248,7 +267,7 @@ buttonLoader.addEventListener("click", () => {
 tarjetaPokemon.addEventListener("click", async (evento) => {
 
     /* --- Guardas: esto no puede fallar, va fuera del try --- */
-    const tarjeta = evento.target.closest(".pokemon--container");
+    const tarjeta = evento.target.closest(".pokemon--button--detalles");
     if (!tarjeta) return;
     const number = tarjeta.dataset.id;
 
@@ -374,7 +393,27 @@ filter__by__types.addEventListener("click", (evento) => {
         // 2. No estaba y hay hueco: lo añado.
         filterType = [...filterType, buttonType];
     }
-    console.log(filterType)
     render();
 });
 
+tarjetaPokemon.addEventListener("click", (evento) => {
+    const boton = evento.target.closest(".favorito");
+    if (!boton) return;
+
+    const buttonFav = boton.dataset.id;
+    const name = boton.dataset.name;
+
+    if (likes.includes(buttonFav)) {
+        // 1. Ya estaba: lo quito.
+        likes = likes.filter((t) => t !== buttonFav);
+
+    } else {
+        // 2. No estaba y hay hueco: lo añado.
+        likes = [...likes, buttonFav];
+    }
+    guardarFavs(likes)
+    const ahoraEsFavorito = likes.includes(buttonFav);
+    boton.setAttribute("aria-pressed", ahoraEsFavorito);
+    boton.setAttribute("aria-label",`${ahoraEsFavorito ? "Quitar de" : "Añadir a"} ${name} favoritos`);
+    
+});

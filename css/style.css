@@ -141,7 +141,6 @@ h4 {
   font-family: inherit;
   color: inherit;
   text-align: start;
-  cursor: pointer;
 
   position: relative;
   overflow: hidden;
@@ -164,10 +163,77 @@ h4 {
   z-index: 10;
 }
 
-.pokemon--container:focus-visible {
+.pokemon--container .pokemon--button--detalles{
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+/* Boton de favorito: flota sobre la tarjeta sin ocupar sitio.
+   El icono se ve pequeno, pero el padding hace que el area pulsable
+   llegue a los 44px que necesita un dedo. */
+.pokemon--container .favorito {
+  position: absolute;
+  top: 0.15rem;
+  right: 0.15rem;
+  z-index: 20;                 /* por encima del boton de detalle */
+
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0.6rem;
+
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--clr-body);
+
+  transition: color var(--transition-fast),
+              transform var(--transition-fast);
+}
+
+.favorito__icono {
+  width: 100%;
+  height: 100%;
+
+  /* Sin marcar: solo el contorno. */
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+  transition: fill var(--transition-fast),
+              stroke var(--transition-fast);
+}
+
+/* Marcado: el corazon se rellena. El estado vive en aria-pressed,
+   asi que el CSS lo lee directamente del HTML. */
+.favorito[aria-pressed="true"] {
+  color: var(--clr-accent);
+}
+
+.favorito[aria-pressed="true"] .favorito__icono {
+  fill: currentColor;
+  animation: latido 0.35s var(--ease);
+}
+
+@keyframes latido {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .favorito[aria-pressed="true"] .favorito__icono { animation: none; }
+}
+/* El <article> no recibe foco: lo recibe el boton de dentro. Con :has()
+   el efecto se aplica igual a la tarjeta entera.
+   Sin border-color: el borde ya es el degradado del tipo. */
+.pokemon--container:has(:focus-visible) {
   transform: translateY(-5px);
   box-shadow: var(--shadow-md);
-  border-color: var(--clr-accent);
 }
 
 .pokemon--container img {
@@ -299,17 +365,23 @@ h4 {
 [data-type-2="steel"]    { --t2: #b7b7ce; }
 [data-type-2="fairy"]    { --t2: #f0a1c4; }
 
-.pokemon--container[data-type-1],
-.modal__grid[data-type-1] {
+.pokemon--container[data-type-1] {
   border: 2px solid transparent;
   background:
     linear-gradient(var(--clr-surface), var(--clr-surface)) padding-box,
     linear-gradient(135deg, var(--t1), var(--t2)) border-box;
 }
 
-.modal__grid[data-type-1],
-.modal__grid[data-type-1]:focus-visible,
-.pokemon--container[data-type-1]:focus-visible {
+/* El <dialog> es quien recibe los data-type desde JavaScript, no el
+   .modal__grid de dentro. */
+#pokemon__data[data-type-1] {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--clr-bg), var(--clr-bg)) padding-box,
+    linear-gradient(135deg, var(--t1), var(--t2)) border-box;
+}
+
+.pokemon--container[data-type-1]:has(:focus-visible) {
   box-shadow: var(--shadow-md), 0 0 0 3px color-mix(in srgb, var(--t1) 25%, transparent);
 }
 
@@ -831,7 +903,6 @@ body:has(#pokemon__data[open]) {
   .pokemon--container:hover {
     transform: translateY(-5px);
     box-shadow: var(--shadow-md);
-    border-color: var(--clr-accent);
   }
 
   .pokemon--container:hover img {
@@ -864,5 +935,10 @@ body:has(#pokemon__data[open]) {
     transform: translateY(-2px);
     border-color: var(--clr-accent);
     box-shadow: var(--shadow-md);
+  }
+
+  .favorito:hover {
+    color: var(--clr-accent);
+    transform: scale(1.12);
   }
 }
