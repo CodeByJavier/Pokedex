@@ -140,7 +140,6 @@ h4 {
 
   font-family: inherit;
   color: inherit;
-  text-align: start;
 
   position: relative;
   overflow: hidden;
@@ -164,6 +163,7 @@ h4 {
 }
 
 .pokemon--container .pokemon--button--detalles{
+  text-align: start;
   background-color: transparent;
   border: none;
   cursor: pointer;
@@ -274,6 +274,7 @@ h4 {
 
 .pokemon--type {
   display: flex;
+  justify-content: space-between;
   flex-wrap: nowrap;
   gap: 0.4rem;
   margin-top: 0.15rem;
@@ -746,16 +747,21 @@ body:has(#pokemon__data[open]) {
 /* * ---------------------------------------------------------------------
   * Buscador
   * ------------------------------------------------------------------- */
-
-.buscador {
+.buscardor{
   max-width: 28rem;
+  
+}
+
+.buscador__filter {
+  display: flex;
   margin: 0 auto clamp(1.5rem, 4vw, 2.5rem);
+  justify-content: center;
 }
 
 .buscador__label {
   display: block;
   margin-bottom: 0.45rem;
-
+  text-align: center;
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -765,9 +771,8 @@ body:has(#pokemon__data[open]) {
 }
 
 .buscador__input {
-  width: 100%;
+  width: 75%;
   padding: 0.75rem 1rem 0.75rem 2.6rem;
-
   font: inherit;
   font-size: 1rem;
   color: var(--clr-ink);
@@ -816,6 +821,30 @@ body:has(#pokemon__data[open]) {
   padding: clamp(2rem, 8vw, 4rem) 1rem;
   color: var(--clr-body);
   font-size: 1rem;
+}
+
+.favorito__filter{
+  position: static;
+  top: auto;
+  right: auto;
+  z-index: 20;                 /* por encima del boton de detalle */
+
+  display: inline;
+  place-items: center;
+  width: 3.2rem;
+  height: 3.2rem;
+  padding: 0.6rem;
+
+  margin-left: 1rem;
+  border: 1px solid var(--clr-border);
+  border-radius: 100%;
+  background-color: var(--clr-surface);
+  color: var(--clr-accent-dark);
+}
+
+.favorito__filter[aria-pressed="true"]{
+  background-color: var(--clr-accent);
+  color: var(--clr-on-accent);
 }
 
 /* * ---------------------------------------------------------------------
@@ -937,8 +966,14 @@ body:has(#pokemon__data[open]) {
     box-shadow: var(--shadow-md);
   }
 
-  .favorito:hover {
+  .favorito:hover,
+  .favorito__filter:hover {
     color: var(--clr-accent);
     transform: scale(1.12);
+  }
+
+  .favorito__filter[aria-pressed="true"]:hover{
+    background-color: var(--clr-accent-dark);
+    color: var(--clr-ink);
   }
 }

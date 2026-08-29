@@ -9,6 +9,7 @@ const tarjetaData = document.getElementById("pokemon__data");
 const search = document.getElementById("search");
 const buttonLoader = document.getElementById("loader__button");
 const buttonFilterByTypes = document.getElementById("filter__by__types");
+const buttonfilterByFav = document.getElementById("buttonfilterByFav");
 
 
 /* =====================================================================
@@ -26,6 +27,7 @@ let hayMas = true;           // ¿quedan más tandas en la API?
 let cargando = false;        // ¿hay una petición en curso ahora mismo?
 let terminoBusqueda = "";    // lo que el usuario tiene escrito en el buscador
 let filterType = []
+let soloFavoritos = false;
 const favs = "like"
 
 const POR_TANDA = 20;
@@ -88,12 +90,12 @@ function guardarFavs(like) {
 
 let likes = cargarFavs();
 
+console.log(likes)
+
 /* Muestra un mensaje ocupando toda la rejilla (cargando, error, vacío). */
 function mostrarMensaje(texto) {
     tarjetaPokemon.innerHTML = `<p class="mensaje-vacio">${texto}</p>`;
 }
-
-console.log(favs)
 
 
 /* =====================================================================
@@ -122,8 +124,13 @@ function render() {
             filterType.length === 0 ||
             filterType.every((tipoFiltro) => pokemonTypes.includes(tipoFiltro));
 
-        // 4. Tiene que pasar los dos porteros
-        return pokemonName && pokemonType;
+        const pokemonFavs = 
+            !soloFavoritos ||
+            likes.includes(String(pokemon.id));
+
+
+        // 5. Tiene que pasar los dos porteros
+        return pokemonName && pokemonType && pokemonFavs;
     });
 
 
@@ -214,6 +221,7 @@ async function obtenerPokemons() {
         /* 5) Acumular: lo que ya tenía, y detrás lo que acaba de llegar.
               El orden del spread es el orden final. */
         allPokemons = [...allPokemons, ...detalles];
+        console.log(allPokemons)
         offset = offset + POR_TANDA;
 
     } catch (error) {
@@ -417,3 +425,26 @@ tarjetaPokemon.addEventListener("click", (evento) => {
     boton.setAttribute("aria-label",`${ahoraEsFavorito ? "Quitar de" : "Añadir a"} ${name} favoritos`);
     
 });
+
+buttonfilterByFav.addEventListener("click", (evento) => {
+    const boton = evento.target.closest(".favorito__filter");
+    if (!boton) return;
+
+    
+
+    if(!soloFavoritos){
+        soloFavoritos = true
+        buttonfilterByFav.setAttribute("aria-pressed", soloFavoritos);
+    }else{
+
+        soloFavoritos = false
+        buttonfilterByFav.setAttribute("aria-pressed", soloFavoritos);
+    }
+
+    render()
+});
+
+
+//location_area_encounter /api/v2/pokémon/35/encuentros
+//gritos https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/35.ogg
+// sheiny mega omega etc
