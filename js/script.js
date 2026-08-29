@@ -10,6 +10,7 @@ const search = document.getElementById("search");
 const buttonLoader = document.getElementById("loader__button");
 const buttonFilterByTypes = document.getElementById("filter__by__types");
 const buttonfilterByFav = document.getElementById("buttonfilterByFav");
+const buttonMute = document.getElementById("buttonMute");
 
 
 /* =====================================================================
@@ -28,12 +29,24 @@ let cargando = false;        // ¿hay una petición en curso ahora mismo?
 let terminoBusqueda = "";    // lo que el usuario tiene escrito en el buscador
 let filterType = []
 let soloFavoritos = false;
+
+/* El rugido que esta sonando AHORA. Empieza en null porque al arrancar
+   no suena nada. Guardamos el objeto Audio entero, no un true/false:
+   para parar algo no basta con saber que existe, hay que poder cogerlo. */
+let sonidoActual = null;
+
 const favs = "like"
+const MUTE = "mute"          // clave del silencio en localStorage
+
+
 
 const POR_TANDA = 20;
 
 const URL_ARTWORK =
     "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork";
+
+const URL_CRIES =
+    "https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest";
 
 /* =====================================================================
  * Funciones que construyen HTML
@@ -88,7 +101,23 @@ function guardarFavs(like) {
     localStorage.setItem(favs, JSON.stringify(like));
 }
 
+/* Mismo patron que los favoritos. Ojo al primer arranque: localStorage
+   devuelve null cuando la clave no existe todavia, y null no es "false",
+   asi que hay que decidir explicitamente el valor por defecto. */
+function cargarSilencio() {
+    const guardadoMute = localStorage.getItem(MUTE);
+    return guardadoMute ? JSON.parse(guardadoMute) : false;
+}
+function guardarSilencio(valor) {
+    localStorage.setItem(MUTE, JSON.stringify(valor));
+}
+
 let likes = cargarFavs();
+
+/* Preferencia del usuario: vive en el estado y ademas en localStorage,
+   para que sobreviva a un recargado de pagina. Se inicializa aqui, y no
+   arriba, porque necesita que MUTE y la funcion ya existan. */
+let silenciado = cargarSilencio();
 
 console.log(likes)
 
@@ -323,6 +352,31 @@ tarjetaPokemon.addEventListener("click", async (evento) => {
                 : dataTarjeta.types[0].type.name
         );
 
+        /* --- El rugido ---
+           1. Si habia uno sonando, se corta. Pausar no rebobina: sin
+              poner currentTime a 0, el proximo play() seguiria por
+              donde iba. Es una aguja de tocadiscos, hay que levantarla
+              Y devolverla al principio.
+           2. Guardamos el nuevo en el estado para poder cortarlo la
+              proxima vez.
+           3. Solo suena si el usuario no ha silenciado. */
+        if (sonidoActual) {
+            sonidoActual.pause();
+            sonidoActual.currentTime = 0;
+        }
+
+        sonidoActual = new Audio(`${URL_CRIES}/${number}.ogg`);
+        sonidoActual.volume = 0.2;
+
+        if (!silenciado) {
+            /* play() devuelve una promesa que puede fallar (formato no
+               soportado, pestana silenciada...). Nunca debe romper la
+               ficha: solo avisa en consola. */
+            sonidoActual.play().catch((error) => {
+                console.log("No se pudo reproducir el sonido", error);
+            });
+        }
+
         tarjetaData.innerHTML = `
             <button class="modal__cerrar" type="button">Cerrar</button>
 
@@ -430,8 +484,6 @@ buttonfilterByFav.addEventListener("click", (evento) => {
     const boton = evento.target.closest(".favorito__filter");
     if (!boton) return;
 
-    
-
     if(!soloFavoritos){
         soloFavoritos = true
         buttonfilterByFav.setAttribute("aria-pressed", soloFavoritos);
@@ -445,6 +497,36 @@ buttonfilterByFav.addEventListener("click", (evento) => {
 });
 
 
-//location_area_encounter /api/v2/pokémon/35/encuentros
-//gritos https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/35.ogg
+/* =====================================================================
+ * Silenciar los rugidos
+ * ===================================================================== */
+
+/* El HTML nace siempre con aria-pressed="false". Si el usuario silencio
+   en una visita anterior, hay que reflejarlo al arrancar: el boton debe
+   contar la verdad del estado, no el valor que venia escrito a mano. */
+function pintarBotonMute() {
+    buttonMute.setAttribute("aria-pressed", silenciado);
+    buttonMute.setAttribute(
+        "aria-label",
+        silenciado ? "Activar los sonidos" : "Silenciar los sonidos"
+    );
+}
+
+pintarBotonMute();
+
+buttonMute.addEventListener("click", () => {
+    silenciado = !silenciado;
+    guardarSilencio(silenciado);
+    pintarBotonMute();
+
+    /* Silenciar con un rugido a medias sonando seria raro: se corta. */
+    if (silenciado && sonidoActual) {
+        sonidoActual.pause();
+        sonidoActual.currentTime = 0;
+    }
+});
+
+
+// location_area_encounter /api/v2/pokémon/35/encuentros
+// gritos https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/35.ogg
 // sheiny mega omega etc

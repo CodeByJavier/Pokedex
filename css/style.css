@@ -848,6 +848,75 @@ body:has(#pokemon__data[open]) {
 }
 
 /* * ---------------------------------------------------------------------
+  * Boton de silencio
+  * Mismo lenguaje visual que el filtro de favoritos, pero un punto mas
+  * pequeno: es un control secundario y la jerarquia se ve en el tamano.
+  * ------------------------------------------------------------------- */
+
+.mute {
+  display: grid;
+  place-items: center;
+
+  width: 2.6rem;
+  height: 2.6rem;
+  padding: 0.5rem;
+  margin-left: 0.6rem;
+  align-self: center;          /* no se estira a la altura del input */
+  flex: 0 0 auto;              /* nunca se encoge */
+
+  border: 1px solid var(--clr-border);
+  border-radius: 100%;
+  background-color: var(--clr-surface);
+  color: var(--clr-ink);
+  cursor: pointer;
+
+  transition: color var(--transition-fast),
+              background-color var(--transition-fast),
+              border-color var(--transition-fast),
+              transform var(--transition-fast);
+}
+
+.mute__icono {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* El cuerpo del altavoz es macizo; ondas y cruz son solo trazo. */
+.mute__altavoz {
+  fill: currentColor;
+}
+
+.mute__ondas,
+.mute__cruz {
+  fill: none;
+}
+
+/* Con sonido: se ven las ondas. La cruz espera fuera de escena. */
+.mute__cruz {
+  display: none;
+}
+
+/* Silenciado: el estado vive en aria-pressed, igual que en el corazon,
+   asi que el CSS lo lee del HTML sin necesidad de una clase extra. */
+.mute[aria-pressed="true"] {
+  background-color: var(--clr-border);
+  border-color: var(--clr-border);
+  color: var(--clr-body);
+}
+
+.mute[aria-pressed="true"] .mute__ondas {
+  display: none;
+}
+
+.mute[aria-pressed="true"] .mute__cruz {
+  display: block;
+}
+
+/* * ---------------------------------------------------------------------
   * Botón "Cargar más"
   * ------------------------------------------------------------------- */
 
@@ -975,5 +1044,16 @@ body:has(#pokemon__data[open]) {
   .favorito__filter[aria-pressed="true"]:hover{
     background-color: var(--clr-accent-dark);
     color: var(--clr-ink);
+  }
+
+  .mute:hover {
+    color: var(--clr-ink);
+    border-color: color-mix(in srgb, var(--clr-ink) 45%, var(--clr-border));
+    transform: scale(1.12);
+  }
+
+  .mute[aria-pressed="true"]:hover {
+    color: var(--clr-ink);
+    border-color: color-mix(in srgb, var(--clr-ink) 45%, var(--clr-border));
   }
 }
