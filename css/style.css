@@ -164,7 +164,6 @@ h4 {
   z-index: 10;
 }
 
-.pokemon--container:hover,
 .pokemon--container:focus-visible {
   transform: translateY(-5px);
   box-shadow: var(--shadow-md);
@@ -179,10 +178,6 @@ h4 {
   border-radius: var(--radius-sm);
   padding: 0.5rem;
   transition: transform var(--transition-med);
-}
-
-.pokemon--container:hover img {
-  transform: scale(1.06);
 }
 
 /* * ---------------------------------------------------------------------
@@ -312,7 +307,6 @@ h4 {
     linear-gradient(135deg, var(--t1), var(--t2)) border-box;
 }
 
-.pokemon--container[data-type-1]:hover,
 .modal__grid[data-type-1],
 .modal__grid[data-type-1]:focus-visible,
 .pokemon--container[data-type-1]:focus-visible {
@@ -367,13 +361,6 @@ h4 {
               transform var(--transition-fast);
 }
 
-.filter__by__type button:hover:not(:disabled) {
-  color: var(--t);
-  border-color: var(--t);
-  background: color-mix(in srgb, var(--t) 14%, transparent);
-  transform: translateY(-1px);
-}
-
 /* El estado activo se lee del propio HTML (aria-pressed), que es donde
    ya vive: no hacen falta clases que añadir y quitar desde JavaScript. */
 .filter__by__type button[aria-pressed="true"] {
@@ -409,17 +396,6 @@ h4 {
   box-shadow: var(--shadow-lg);
   
   overflow: hidden;
-}
-
-/* Borde degradado del modal, con los tipos del Pokemon abierto.
-   Mismo truco que en las tarjetas: dos fondos apilados, uno recortado
-   al padding-box y el degradado hasta el border-box, con el borde
-   transparente para que asome por el anillo. */
-#pokemon__data[data-type-1] {
-  border: 2px solid transparent;
-  background:
-    linear-gradient(var(--clr-bg), var(--clr-bg)) padding-box,
-    linear-gradient(135deg, var(--t1), var(--t2)) border-box;
 }
 
 #pokemon__data::backdrop {
@@ -468,13 +444,6 @@ body:has(#pokemon__data[open]) {
   font-size: 1.35rem;
   line-height: 1;
   color: currentColor;
-}
-
-#pokemon__data .modal__cerrar:hover {
-  background-color: var(--clr-accent);
-  border-color: var(--clr-accent);
-  color: var(--clr-on-accent);
-  transform: scale(1.08);
 }
 
 /* --- rejilla principal --- */
@@ -750,10 +719,6 @@ body:has(#pokemon__data[open]) {
   opacity: 0.55;
 }
 
-.buscador__input:hover {
-  border-color: color-mix(in srgb, var(--clr-accent) 45%, var(--clr-border));
-}
-
 .buscador__input:focus {
   outline: none;                       /* se sustituye por el anillo de abajo */
   border-color: var(--clr-accent);
@@ -816,12 +781,6 @@ body:has(#pokemon__data[open]) {
               opacity var(--transition-fast);
 }
 
-.loader__button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  border-color: var(--clr-accent);
-  box-shadow: var(--shadow-md);
-}
-
 .loader__button:active:not(:disabled) {
   transform: translateY(0);
 }
@@ -854,5 +813,56 @@ body:has(#pokemon__data[open]) {
 @media (prefers-reduced-motion: reduce) {
   .loader__button:disabled::before {
     animation: none;
+  }
+}
+
+
+/* * ---------------------------------------------------------------------
+  * Hover: solo en dispositivos con puntero real
+  * ---------------------------------------------------------------------
+  * En una pantalla tactil el :hover se queda pegado tras tocar, asi que
+  * estos estilos solo se aplican donde hay raton o trackpad.
+  * Ojo: :focus-visible NUNCA entra aqui — el teclado funciona en todos
+  * los dispositivos y quien navega asi necesita ver donde esta.
+  * ------------------------------------------------------------------- */
+
+@media (hover: hover) and (pointer: fine) {
+
+  .pokemon--container:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--clr-accent);
+  }
+
+  .pokemon--container:hover img {
+    transform: scale(1.06);
+  }
+
+  .pokemon--container[data-type-1]:hover {
+    box-shadow: var(--shadow-md), 0 0 0 3px color-mix(in srgb, var(--t1) 25%, transparent);
+  }
+
+  .filter__by__type button:hover:not(:disabled) {
+    color: var(--t);
+    border-color: var(--t);
+    background: color-mix(in srgb, var(--t) 14%, transparent);
+    transform: translateY(-1px);
+  }
+
+  #pokemon__data .modal__cerrar:hover {
+    background-color: var(--clr-accent);
+    border-color: var(--clr-accent);
+    color: var(--clr-on-accent);
+    transform: scale(1.08);
+  }
+
+  .buscador__input:hover {
+    border-color: color-mix(in srgb, var(--clr-accent) 45%, var(--clr-border));
+  }
+
+  .loader__button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: var(--clr-accent);
+    box-shadow: var(--shadow-md);
   }
 }
