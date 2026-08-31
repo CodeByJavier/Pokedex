@@ -22,26 +22,26 @@ const buttonMute = document.getElementById("buttonMute");
  * ===================================================================== */
 
 let allPokemons = [];        // los Pokémon ya descargados (la "despensa")
-let allPokemonsType = []
+let allPokemonsType = []     // los tipos de cada pokemon
 let offset = 0;              // por dónde va la paginación (el marcapáginas)
 let hayMas = true;           // ¿quedan más tandas en la API?
 let cargando = false;        // ¿hay una petición en curso ahora mismo?
 let terminoBusqueda = "";    // lo que el usuario tiene escrito en el buscador
-let filterType = []
-let soloFavoritos = false;
-let moreDetails = false;
+let filterType = []          // el filtro que el usuario tiene activo (maximo 2)
+let soloFavoritos = false;   // esta activo el filtro por favoritos?
+let moreDetails = false;     // se presiono el switch de mas detalles dentro del modal?
 
 /* El rugido que esta sonando AHORA. Empieza en null porque al arrancar
    no suena nada. Guardamos el objeto Audio entero, no un true/false:
    para parar algo no basta con saber que existe, hay que poder cogerlo. */
 let sonidoActual = null;
 
-const favs = "like"
+const favs = "like"          // clave del favoritos en localStorage
 const MUTE = "mute"          // clave del silencio en localStorage
 
 
 
-const POR_TANDA = 20;
+const POR_TANDA = 20;       // la cantidad de pokemons que se cargaran
 
 const URL_ARTWORK =
     "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork";

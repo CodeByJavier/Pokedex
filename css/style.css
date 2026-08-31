@@ -58,6 +58,25 @@ html {
   scroll-behavior: smooth;
 }
 
+/* --- Interruptor general de movimiento ---
+
+   prefers-reduced-motion es un ajuste del sistema operativo que la gente
+   activa por motivos medicos: trastornos vestibulares, migranas, mareo
+   por movimiento. No es una preferencia estetica.
+
+   El selector * apaga TODA animacion de la hoja, incluidas las que se
+   añadan en el futuro y las que traiga cualquier libreria. Por eso este
+   bloque es el unico que hace falta: no hay reglas puntuales repartidas
+   por el archivo, que se olvidan de actualizar.
+
+   Los !important no son opcionales. * tiene especificidad 0-0-0, la mas
+   baja que existe, y una media query NO otorga prioridad: solo decide
+   si sus reglas participan. Sin !important perderia contra cualquier
+   selector con un id o una clase, y el bloque entero seria decorativo.
+
+   Y la duracion es 0.001ms en vez de 0 porque con 0 hay navegadores que
+   no disparan animationend ni transitionend: el movimiento se iria y de
+   paso se romperia cualquier JavaScript que espere esos eventos. */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -225,9 +244,6 @@ h4 {
   100% { transform: scale(1); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .favorito[aria-pressed="true"] .favorito__icono { animation: none; }
-}
 /* El <article> no recibe foco: lo recibe el boton de dentro. Con :has()
    el efecto se aplica igual a la tarjeta entera.
    Sin border-color: el borde ya es el degradado del tipo. */
@@ -454,10 +470,8 @@ h4 {
   * ------------------------------------------------------------------- */
 
 #pokemon__data {
-  /* sin position: el navegador ya centra un dialog abierto con showModal() */
   width: min(100% - 1.5rem, var(--container-w));
   max-height: min(92dvh, 800px);
-  overflow: auto;
 
   margin: auto;
   padding: 0;
@@ -542,10 +556,11 @@ body:has(#pokemon__data[open]) {
 #pokemon__data .modal__img {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-  grid-template-rows: auto ;   /* filas explicitas: hacen falta para el span */
+  grid-template-rows: auto;
   column-gap: 1rem;
   row-gap: 0.3rem;
   text-align: center;
+  /* Sin max-height ni overflow: el tope vive donde vive el scroll. */
 }
 
 /* La foto y la cadena se turnan en el mismo hueco de la rejilla, asi
@@ -618,6 +633,7 @@ body:has(#pokemon__data[open]) {
     text-align: center;
     row-gap: 0;
   }
+  
   #pokemon__data .modal__img > .modal__panel,
   #pokemon__data .modal__img img,
   #pokemon__data .modal__id,
@@ -794,10 +810,6 @@ body:has(#pokemon__data[open]) {
   pointer-events: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  #pokemon__data .modal__panel:not([hidden]) { animation: none; }
-  #pokemon__data .modal__grid { transition: none; }
-}
 
 /* Sin esto, la fila de evoluciones de Eevee ensancha la columna entera
    y el texto se sale del modal. Un elemento de grid nace con
@@ -813,7 +825,7 @@ body:has(#pokemon__data[open]) {
   display: flex;
   width: 100%;
   justify-content: center;
-  margin-top: 1.25rem;
+  margin: 1.25rem 0;
 }
 
 #pokemon__data .box__switch__button .switch__button{
@@ -878,9 +890,6 @@ body:has(#pokemon__data[open]) {
   fill: var(--clr-accent);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  #pokemon__data .switch__icono { transition: none; }
-}
 
 /* --- Panel 2: descripcion y datos de enciclopedia --- */
 
@@ -929,24 +938,47 @@ body:has(#pokemon__data[open]) {
 
 /* La cadena vive en el hueco de la foto: alto y estrecho. Por eso va
    en vertical, con la flecha apuntando hacia abajo. */
-#pokemon__data .panel--evolucion h3 {
-  text-align: start;
-}
 
 #pokemon__data .evolucion {
   list-style: none;
   margin: 0;
   padding: 0;
-
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-
-  /* Eevee encadena nueve: se desplaza en vez de estirar el modal. */
+  /* Escritorio: el tope de siempre. */
   max-height: 24rem;
+  min-height: 0;
   overflow-y: auto;
+  scrollbar-gutter: stable;
   overscroll-behavior-y: contain;
   scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--clr-accent) 55%, var(--clr-border))
+                   transparent;
+}
+
+#pokemon__data .evolucion::-webkit-scrollbar {
+  width: 8px;
+}
+
+#pokemon__data .evolucion::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#pokemon__data .evolucion::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--clr-accent) 55%, var(--clr-border));
+  border-radius: 999px;
+  background-clip: content-box;
+}
+
+#pokemon__data .evolucion::-webkit-scrollbar-thumb:hover {
+  background-color: var(--clr-accent);
+}
+
+
+  
+#pokemon__data .panel--evolucion h3 {
+  text-align: start;
 }
 
 #pokemon__data .evolucion__paso {
@@ -1315,12 +1347,6 @@ body:has(#pokemon__data[open]) {
   to { transform: rotate(360deg); }
 }
 
-/* Quien haya pedido menos animación no ve la rueda girar */
-@media (prefers-reduced-motion: reduce) {
-  .loader__button:disabled::before {
-    animation: none;
-  }
-}
 
 
 /* * ---------------------------------------------------------------------
@@ -1403,5 +1429,90 @@ body:has(#pokemon__data[open]) {
     color: var(--clr-ink);
     border-color: var(--clr-accent);
     transform: translateX(3px);
+  }
+}
+
+
+/* * ---------------------------------------------------------------------
+  * MOVIL — va al final del archivo a proposito: estas reglas tienen la
+  * misma especificidad que las de arriba, asi que el desempate lo
+  * decide el orden. Colocadas antes, no pintarian nada.
+  * ------------------------------------------------------------------- */
+
+@media (max-width: 639px) {
+
+  /* --- Rediseño de la columna izquierda en movil ---
+     Con la cadena y la identidad en pistas separadas, sus alturas se
+     SUMAN y el modal no da de si. Poniendolas lado a lado comparten
+     fila: la altura pasa a ser la del mas alto, no la suma. Solo con
+     eso se recuperan mas de 100px, que es lo que hacia falta para
+     enseñar tres eslabones sin recortar la descripcion. */
+  #pokemon__data .modal__img {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto;
+    align-items: center;
+    column-gap: 0.6rem;
+  }
+
+  /* Eslabones compactos: en media columna de movil el sprite grande no
+     cabe, y cada pixel de alto se necesita abajo. */
+  #pokemon__data .evolucion {
+    gap: 0.2rem;
+    /* Tres eslabones completos; a partir del cuarto, scroll. */
+    max-height: 12rem;
+  }
+
+  #pokemon__data .evolucion__eslabon {
+    gap: 0.45rem;
+    padding: 0.3rem 0.4rem;
+  }
+
+  #pokemon__data .evolucion__eslabon img {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  #pokemon__data .evolucion__nombre {
+    font-size: 0.72rem;
+  }
+
+  #pokemon__data .evolucion__paso + .evolucion__paso::before {
+    margin: 0 0 0.2rem;
+    font-size: 0.8rem;
+  }
+
+  /* --- Panel de datos mas apretado ---
+     El objetivo es que la descripcion NO tenga scroll: si el contenido
+     cabe, no hace falta desplazar nada. */
+  #pokemon__data .modal__info h3,
+  #pokemon__data .panel--evolucion h3 {
+    margin-bottom: 0.35rem;
+  }
+
+  #pokemon__data .pokedex__texto {
+    margin-bottom: 0.85rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  #pokemon__data .pokedex__habilidades {
+    margin-bottom: 0.85rem;
+  }
+
+  #pokemon__data .pokedex__datos {
+    gap: 0.4rem;
+    margin-bottom: 0;
+  }
+
+  #pokemon__data .pokedex__datos > div {
+    padding: 0.35rem 0.55rem;
+  }
+
+  #pokemon__data .pokedex__datos dd {
+    font-size: 0.85rem;
+  }
+
+  #pokemon__data .box__switch__button {
+    margin-top: 0.75rem;
   }
 }
